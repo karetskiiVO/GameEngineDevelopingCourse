@@ -6,6 +6,8 @@
 #include <Math/Vector.h>
 #include <Math/Matrix.h>
 
+#include <chrono>
+
 namespace GameEngine
 {
 	namespace Render::HAL
@@ -271,7 +273,32 @@ namespace GameEngine
 			Math::Matrix4x4f view = Core::Math::ViewMatrixLH(pos, target, up);
 			Math::Matrix4x4f proj = Core::Math::ProjectionMatrixLH(0.25f * DirectX::XM_PI, Core::MainWindowsApplication->GetAspectRatio(), 1.0f, 1000.0f);
 
-			Math::Matrix4x4f world = Math::Matrix4x4f::Identity();
+			//Math::Matrix4x4f world = Math::Matrix4x4f::Identity();
+			static auto start = std::chrono::system_clock::now();
+			auto now = std::chrono::system_clock::now();
+			float angle = std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() * 0.001f;
+
+			Math::Matrix4x4f world = [] (float angle) -> Math::Matrix4x4f {
+				using namespace Math;
+
+				Matrix4x4f result;
+
+				result.SetElement(cos(angle),  0, 0);
+				result.SetElement(sin(angle),  0, 2);
+				result.SetElement(-sin(angle), 2, 0);
+				result.SetElement(cos(angle),  2, 2);
+
+				result.SetElement(0.0f, 0, 1);
+				result.SetElement(0.0f, 1, 0);
+				result.SetElement(0.0f, 1, 2);
+				result.SetElement(0.0f, 2, 1);
+
+				result.SetElement(1.0f, 1, 1);
+				result.SetElement(1.0f, 3, 3);
+
+				return result;
+			} (angle);
+			
 			Math::Matrix4x4f worldViewProj = world * view * proj;
 
 			ObjectConstants objConstants;
