@@ -16,6 +16,8 @@ namespace GameEngine
 
 		m_renderThread = std::make_unique<Render::RenderThread>();
 
+		m_Input.Init("..\\..\\..\\..\\..\\Assets\\input.ini");
+
 		// How many objects do we want to create
 		for (int i = 0; i < 3; ++i)
 		{
@@ -47,10 +49,14 @@ namespace GameEngine
 	}
 
 	void Game::Update(float dt)
-	{
+	{	
+		m_Input.Update(dt);
+
 		for (int i = 0; i < m_Objects.size(); ++i)
 		{
 			Math::Vector3f pos = m_Objects[i]->GetPosition();
+
+			pos.z += m_Input.GetAxis("forward") * dt;
 
 			// Showcase
 			if (i == 0)

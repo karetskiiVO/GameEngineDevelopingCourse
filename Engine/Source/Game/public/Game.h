@@ -4,6 +4,7 @@
 #include <RenderThread.h>
 #include <Timer.h>
 #include <Window/IWindow.h>
+#include <Input.h>
 
 namespace GameEngine
 {
@@ -27,6 +28,8 @@ namespace GameEngine
 
 	private:
 		Core::Timer m_GameTimer;
+		Input m_Input;
+
 		std::unique_ptr<Render::RenderThread> m_renderThread;
 		std::vector<GameObject*> m_Objects;
 	};
