@@ -20,11 +20,13 @@ namespace GameEngine
 	public:
 		void Run();
 		void Update(float dt);
-
+		
+		size_t RenderFrame () const {
+			return m_renderThread->GetMainFrame();
+		}
 	private:
 		// The main idea behind having this functor is to abstract the common code from the platfrom-specific code
 		std::function<bool()> PlatformLoop = nullptr;
-
 	private:
 		Core::Timer m_GameTimer;
 		std::unique_ptr<Render::RenderThread> m_renderThread;

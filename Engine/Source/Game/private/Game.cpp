@@ -17,13 +17,41 @@ namespace GameEngine
 
 		m_renderThread = std::make_unique<Render::RenderThread>();
 
-		// How many objects do we want to create
-		for (int i = 0; i < 3; ++i)
-		{
-			m_Objects.push_back(new GameObject());
-			Render::RenderObject** renderObject = m_Objects.back()->GetRenderObjectRef();
-			m_renderThread->EnqueueCommand(Render::ERC::CreateRenderObject, RenderCore::DefaultGeometry::Cube(), renderObject);
+		for (int x = -5; x < 5; x++) {
+			for (int z = -5; z < 5; z++) {
+				auto gameObject = new GameObject();
+				gameObject->SetPosition(Math::Vector3f(4 * x, 0, 4 * z), m_renderThread->GetMainFrame());
+				m_Objects.push_back(gameObject);
+
+				switch (std::abs(rand()) % 3) {
+				case 0:
+					gameObject->AddComponent(
+						new SimpleJumpBehavour{
+							this, gameObject
+						}
+					);
+					break;
+				case 1:
+					gameObject->AddComponent(
+						new SimpleMovementBehvour{
+							this, gameObject
+						}
+					);
+					break;
+				case 2:
+					gameObject->AddComponent(
+						new SimpleControledBehvour{
+							this, gameObject
+						}
+					);
+					break;
+				}
+
+				m_renderThread->EnqueueCommand(Render::ERC::CreateRenderObject, RenderCore::DefaultGeometry::Cube(), gameObject->GetRenderObjectRef());
+			}
 		}
+		
+
 
 		Core::g_InputHandler->RegisterCallback("GoForward", [&]() { Core::g_MainCamera->Move(Core::g_MainCamera->GetViewDir()); });
 		Core::g_InputHandler->RegisterCallback("GoBack", [&]() { Core::g_MainCamera->Move(-Core::g_MainCamera->GetViewDir()); });
@@ -58,25 +86,9 @@ namespace GameEngine
 
 	void Game::Update(float dt)
 	{
-		for (int i = 0; i < m_Objects.size(); ++i)
+		for (auto gameObject : m_Objects)
 		{
-			Math::Vector3f pos = m_Objects[i]->GetPosition();
-
-			// Showcase
-			if (i == 0)
-			{
-				pos.x += 0.5f * dt;
-			}
-			else if (i == 1)
-			{
-				pos.y -= 0.5f * dt;
-			}
-			else if (i == 2)
-			{
-				pos.x += 0.5f * dt;
-				pos.y -= 0.5f * dt;
-			}
-			m_Objects[i]->SetPosition(pos, m_renderThread->GetMainFrame());
+			gameObject->Update(dt);
 		}
 	}
 }
