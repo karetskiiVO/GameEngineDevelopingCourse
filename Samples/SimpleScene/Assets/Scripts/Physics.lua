@@ -60,9 +60,15 @@ local function BounceSystem(it)
     end
 end
 
+local function DieSystem(it)
+	for bullet in ecs.each(it) do
+		bullet.deathtime = bullet.deathtime - it.delta_time
+	end
+end
+
 ecs.system(move, "Move", ecs.OnUpdate, "Position, Velocity")
 ecs.system(gravity, "grav", ecs.OnUpdate, "Position, Velocity, Gravity, BouncePlane")
 ecs.system(FrictionSystem, "FrictionSystem", ecs.OnUpdate, "Velocity, FrictionAmount")
 ecs.system(ShiverSystem, "ShiverSystem", ecs.OnUpdate, "Position, ShiverAmount")
 ecs.system(BounceSystem, "BounceSystem", ecs.OnUpdate, "Position, Velocity, BouncePlane, Bounciness")
-
+ecs.system(DieSystem, "DieSystem", ecs.OnUpdate, "Bullet")
