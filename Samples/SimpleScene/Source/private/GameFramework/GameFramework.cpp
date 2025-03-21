@@ -24,6 +24,10 @@ void GameFramework::Init()
 	RegisterComponents();
 	RegisterSystems();
 
+	flecs::entity cubeControlClone = m_World.entity()
+		.set(Position{ -2.f, 0.f, 0.f })
+		.set(HitSphere{ 1.0f, 0.f })
+		.set(OriginFlag{});
 	flecs::entity cubeControl = m_World.entity()
 		.set(Position{ -2.f, 0.f, 0.f })
 		.set(Velocity{ 0.f, 0.f, 0.f })
@@ -33,30 +37,34 @@ void GameFramework::Init()
 		.set(Gravity{ 0.f, -9.8065f, 0.f })
 		.set(BouncePlane{ 0.f, 1.f, 0.f, 5.f })
 		.set(Bounciness{ 0.3f })
-		.set(HitSphere{ 1.0f })
-		.set(Enemy{})
+		.set(Enemy{ 100 })
+		.set(HitClone{ cubeControlClone })
 		.set(EntitySystem::ECS::GeometryPtr{ RenderCore::DefaultGeometry::Cube() })
 		.set(EntitySystem::ECS::RenderObjectPtr{ new Render::RenderObject() })
 		.set(ControllerPtr{ new Core::Controller(Core::g_FileSystem->GetConfigPath("Input_default.ini")) });
 
+	flecs::entity cubeMovingClone = m_World.entity()
+		.set(Position{ 2.f, 0.f, 0.f })
+		.set(HitSphere{ 1.0f, 0.f })
+		.set(OriginFlag{});
 	flecs::entity cubeMoving = m_World.entity()
 		.set(Position{ 2.f, 0.f, 0.f })
 		.set(Velocity{ 0.f, 3.f, 0.f })
 		.set(Gravity{ 0.f, -9.8065f, 0.f })
 		.set(BouncePlane{ 0.f, 1.f, 0.f, 5.f })
 		.set(Bounciness{ 1.f })
-		.set(HitSphere{ 1.0f })
 		.set(Enemy{ 100 })
-		.set(Bonus{})
+		.set(HitClone{ cubeMovingClone })
 		.set(EntitySystem::ECS::GeometryPtr{ RenderCore::DefaultGeometry::Cube() })
 		.set(EntitySystem::ECS::RenderObjectPtr{ new Render::RenderObject() });
+
 
 	flecs::entity camera = m_World.entity()
 		.set(Position{ 0.0f, 12.0f, -10.0f })
 		.set(Speed{ 10.f })
 		.set(CameraPtr{ Core::g_MainCamera })
 		.set(ControllerPtr{ new Core::Controller(Core::g_FileSystem->GetConfigPath("Input_default.ini")) })
-		.set(Cannon{ &m_World, 6, 6, 0, 100, 1500 });;
+		.set(Cannon{ &m_World, 6, 6, 0, 100, 1500 });
 }
 
 void GameFramework::RegisterComponents()
@@ -70,11 +78,9 @@ void GameFramework::RegisterComponents()
 	ECS_META_COMPONENT(m_World, ShiverAmount);
 	ECS_META_COMPONENT(m_World, FrictionAmount);
 	ECS_META_COMPONENT(m_World, Speed);
-	ECS_META_COMPONENT(m_World, Cannon);
 	ECS_META_COMPONENT(m_World, Bullet);
-	ECS_META_COMPONENT(m_World, Enemy);
 	ECS_META_COMPONENT(m_World, HitSphere);
-	ECS_META_COMPONENT(m_World, Bonus);
+	ECS_META_COMPONENT(m_World, OriginFlag);
 }
 
 void GameFramework::RegisterSystems()
@@ -89,10 +95,18 @@ void GameFramework::Update(float dt)
 
 }
 
-
 void RegisterEcsFightingSystems(flecs::world& world) {
+	world.system<HitClone, Position>()
+	.each([&](flecs::entity, HitClone& hitclone, Position& position) {
+		flecs::ref pos = hitclone.clone.get_ref<Position>();
+		
+		pos->x = position.x;
+		pos->y = position.y;
+		pos->z = position.z;
+	});
+
 	world.system<Cannon, const CameraPtr, const ControllerPtr>()
-		.each([&](flecs::entity e, Cannon& canon, const CameraPtr& camera, const ControllerPtr& controller) {
+	.each([&](flecs::entity e, Cannon& canon, const CameraPtr& camera, const ControllerPtr& controller) {
 		static auto prev = std::chrono::high_resolution_clock::now();
 		auto now = std::chrono::high_resolution_clock::now();
 		auto dt = now - prev;
@@ -102,15 +116,20 @@ void RegisterEcsFightingSystems(flecs::world& world) {
 
 		if (controller.ptr->IsPressed("Jump") && (canon.currCooldown < 1e-8)) {
 			Math::Vector3f pos = camera.ptr->GetPosition();
-			Math::Vector3f vel = camera.ptr->GetViewDir().Normalized() * 50;
+			Math::Vector3f vel = camera.ptr->GetViewDir().Normalized() * 10;
+			flecs::entity bulletClone = world.entity()
+				.set(Position{ pos.x, pos.y, pos.z })
+				.set(HitSphere{ 1.0f, 0.f })
+				.set(OriginFlag{});
 			flecs::entity bullet = world.entity()
 				.set(Position{ pos.x, pos.y, pos.z })
 				.set(Velocity{ vel.x, vel.y, vel.z })
 				.set(Gravity{ 0.f, -9.8065f, 0.f })
-				.set(Bullet{ e, 1000 })
+				.set(Bullet{ 10.f, 1000 })
 				.set(EntitySystem::ECS::GeometryPtr{ RenderCore::DefaultGeometry::SmallCube() })
-				.set(HitSphere{ 0.1f })
-				.set(EntitySystem::ECS::RenderObjectPtr{ new Render::RenderObject() });
+				.set(EntitySystem::ECS::RenderObjectPtr{ new Render::RenderObject() })
+				.set(HitClone{ bulletClone });
+			
 
 			if (canon.magasineCount == 1) {
 				canon.currCooldown = canon.bigCooldown;
@@ -123,35 +142,23 @@ void RegisterEcsFightingSystems(flecs::world& world) {
 		}
 	});
 
-	world.system<Bullet, Position, HitSphere>()
-	.each([&](flecs::entity ebullet, Bullet& bullet, Position& bulletpos, HitSphere& bulletSphere) {
-		auto newdeathtime = std::chrono::high_resolution_clock::now() + std::chrono::seconds(1);
-		
-		world.each([&](flecs::entity eobj, Enemy&, Position& pos, HitSphere& objSphere, EntitySystem::ECS::RenderObjectPtr& render) {
-			if (eobj.has<Bonus>()) {
-				flecs::ref cannon = bullet.owner.get_ref<Cannon>();
-				cannon->magasineCount = std::min(cannon->magasineCount + 3, cannon->magasineCapacity);
-			}
+	world.system<HitClone, Enemy, EntitySystem::ECS::RenderObjectPtr>()
+	.each([&](flecs::entity entity, HitClone& hitClone, const Enemy&, EntitySystem::ECS::RenderObjectPtr& renderer) {
+		flecs::ref hitSphere = hitClone.clone.get_ref<HitSphere>();
 
-			float len = std::sqrt(
-				(pos.x - bulletpos.x) * (pos.x - bulletpos.x) + 
-				(pos.y - bulletpos.y) * (pos.y - bulletpos.y) + 
-				(pos.z - bulletpos.z) * (pos.z - bulletpos.z)
-			);
-			if (len < bulletSphere.radius + objSphere.radius) {
-				bullet.deathtime = std::min(bullet.deathtime, float(newdeathtime.time_since_epoch().count()));
+		if (hitSphere->hited == 0) return;
 
-				eobj.destruct();
-				GameEngine::Render::RenderEngine::renderer->RemoveRenderObject(render.ptr);
-			}
-		});
+		entity.destruct();
+		GameEngine::Render::RenderEngine::renderer->RemoveRenderObject(renderer.ptr);
+
+		entity.destruct();
 	});
 
 	world.system<Bullet, EntitySystem::ECS::RenderObjectPtr>()
-	.each([&](flecs::entity e, const Bullet& bullet, EntitySystem::ECS::RenderObjectPtr& render) {
+	.each([&](flecs::entity entity, const Bullet& bullet, EntitySystem::ECS::RenderObjectPtr& render) {
 		if (bullet.deathtime > 0) return;
 
-		e.destruct();
+		entity.destruct();
 		GameEngine::Render::RenderEngine::renderer->RemoveRenderObject(render.ptr);
 	});
 

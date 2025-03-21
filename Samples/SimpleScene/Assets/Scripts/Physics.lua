@@ -61,10 +61,63 @@ local function BounceSystem(it)
 end
 
 local function DieSystem(it)
-	for bullet in ecs.each(it) do
+	for bullet, ent in ecs.each(it) do
 		bullet.deathtime = bullet.deathtime - it.delta_time
 	end
 end
+
+local function HitSystem(it)
+    local entities = {}
+    for posa, spherea, flaga, enta in ecs.each(it) do
+        table.insert(entities, {pos = posa, sphere = spherea, flag = flaga, ent = enta})
+    end
+
+    for i = 1, #entities do
+        local posa = entities[i].pos
+        local spherea = entities[i].sphere
+        local enta = entities[i].ent
+
+        for j = i + 1, #entities do
+            local posb = entities[j].pos
+            local sphereb = entities[j].sphere
+            local entb = entities[j].ent
+
+            local dx = posa.x - posb.x
+            local dy = posa.y - posb.y
+            local dz = posa.z - posb.z
+
+            local sqDist = dx * dx + dy * dy + dz * dz
+            local bound = spherea.radius + sphereb.radius
+            local sqBound = bound * bound
+
+			if sqDist < sqBound then
+				spherea.hited = 1
+				sphereb.hited = 1
+			end
+        end
+    end
+end
+
+-- local function HitSystem(it)
+--  	for pos1, sphere1, flag1, ent1 in ecs.each(it) do
+--  		for pos2, sphere2, flag2, ent2 in ecs.each(it) do
+-- 			if ent1 ~= ent2 then
+-- 				local dx = pos1.x - pos2.x
+-- 				local dy = pos1.y - pos2.y
+-- 				local dz = pos1.z - pos2.z
+
+-- 				local sqDist = dx * dx + dy * dy + dz * dz
+-- 				local bound = sphere1.radius + sphere2.radius
+--  				local sqBound = bound * bound
+
+-- 				if sqDist < sqBound then
+-- 					sphere1.hited = 1
+-- 					sphere2.hited = 1
+-- 				end
+--  			end
+--  		end
+--  	end
+-- end
 
 ecs.system(move, "Move", ecs.OnUpdate, "Position, Velocity")
 ecs.system(gravity, "grav", ecs.OnUpdate, "Position, Velocity, Gravity, BouncePlane")
@@ -72,3 +125,4 @@ ecs.system(FrictionSystem, "FrictionSystem", ecs.OnUpdate, "Velocity, FrictionAm
 ecs.system(ShiverSystem, "ShiverSystem", ecs.OnUpdate, "Position, ShiverAmount")
 ecs.system(BounceSystem, "BounceSystem", ecs.OnUpdate, "Position, Velocity, BouncePlane, Bounciness")
 ecs.system(DieSystem, "DieSystem", ecs.OnUpdate, "Bullet")
+ecs.system(HitSystem, "HitSystem", ecs.OnUpdate, "Position, HitSphere, OriginFlag")

@@ -25,9 +25,12 @@ ECS_STRUCT(Cannon, {
 });
 
 ECS_STRUCT(Bullet, {
-	flecs::entity owner;
 	float deathtime;
 	unsigned dng;
+});
+
+ECS_STRUCT(Owned, {
+	flecs::entity owner;
 });
 
 ECS_STRUCT(Enemy, {
@@ -36,10 +39,15 @@ ECS_STRUCT(Enemy, {
 
 ECS_STRUCT(HitSphere, {
 	float radius;
+	float hited;
 });
 
-ECS_STRUCT(Bonus, {
-	uint8_t _;
+ECS_STRUCT(HitClone, {
+	flecs::entity clone;
+});
+
+ECS_STRUCT(OriginFlag, { 
+	float val;
 });
 
 void RegisterEcsFightingSystems(flecs::world& world);
