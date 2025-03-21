@@ -68,17 +68,19 @@ end
 
 local function HitSystem(it)
     local entities = {}
-   
+    
+    for posa, spherea, flaga, enta in ecs.each(it) do
         table.insert(entities, {pos = posa, sphere = spherea, flag = flaga, ent = enta})
     end
 
     for posa, spherea, flaga, enta in ecs.each(it) do
-        for j = 0, #entities do
-            if enta ~= entb then
-                local posb = entities[j].pos
-                local sphereb = entities[j].sphere
-                local entb = entities[j].ent
-
+        for posb, sphereb, flagb, entb in ecs.each(it) do
+            if ecs.get_alive(enta) > ecs.get_alive(entb) then
+                -- local posb = entities[j].pos
+                -- local sphereb = entities[j].sphere
+                -- local entb = entities[j].ent
+                -- local flagb = entities[j].flag
+                
                 local dx = posa.x - posb.x
                 local dy = posa.y - posb.y
                 local dz = posa.z - posb.z
@@ -87,10 +89,10 @@ local function HitSystem(it)
                 local bound = spherea.r + sphereb.r
                 local sqBound = bound * bound
 
-                if sqDist <= sqBound then
+                if sqDist < sqBound then
                     spherea.hited = 1
                     sphereb.hited = 1
-                end
+                end                
             end
         end
     end

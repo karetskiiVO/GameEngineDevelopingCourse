@@ -46,8 +46,8 @@ ECS_STRUCT(HitClone, {
 	flecs::entity clone;
 });
 
-ECS_STRUCT(OriginFlag, { 
-	float value;
+ECS_STRUCT(OriginFlag, {
+	bool isbullet;
 });
 
 void RegisterEcsFightingSystems(flecs::world& world);

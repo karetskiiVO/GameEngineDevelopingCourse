@@ -27,7 +27,7 @@ void GameFramework::Init()
 	flecs::entity cubeControlClone = m_World.entity()
 		.set(Position{ -2.f, 0.f, 0.f })
 		.set(HitSphere{ 1.0f, 0.f })
-		.set(OriginFlag{});
+		.set(OriginFlag{ false });
 	flecs::entity cubeControl = m_World.entity()
 		.set(Position{ -2.f, 0.f, 0.f })
 		.set(Velocity{ 0.f, 0.f, 0.f })
@@ -46,7 +46,7 @@ void GameFramework::Init()
 	flecs::entity cubeMovingClone = m_World.entity()
 		.set(Position{ 2.f, 0.f, 0.f })
 		.set(HitSphere{ 1.0f, 0.f })
-		.set(OriginFlag{});
+		.set(OriginFlag{ false });
 	flecs::entity cubeMoving = m_World.entity()
 		.set(Position{ 2.f, 0.f, 0.f })
 		.set(Velocity{ 0.f, 3.f, 0.f })
@@ -116,11 +116,11 @@ void RegisterEcsFightingSystems(flecs::world& world) {
 
 		if (controller.ptr->IsPressed("Jump") && (canon.currCooldown < 1e-8)) {
 			Math::Vector3f pos = camera.ptr->GetPosition();
-			Math::Vector3f vel = camera.ptr->GetViewDir().Normalized() * 10;
+			Math::Vector3f vel = camera.ptr->GetViewDir().Normalized() * 30;
 			flecs::entity bulletClone = world.entity()
 				.set(Position{ pos.x, pos.y, pos.z })
 				.set(HitSphere{ 0.1f, 0.f })
-				.set(OriginFlag{});
+				.set(OriginFlag{ true });
 			flecs::entity bullet = world.entity()
 				.set(Position{ pos.x, pos.y, pos.z })
 				.set(Velocity{ vel.x, vel.y, vel.z })
