@@ -64,7 +64,7 @@ void GameFramework::Init()
 		.set(Speed{ 10.f })
 		.set(CameraPtr{ Core::g_MainCamera })
 		.set(ControllerPtr{ new Core::Controller(Core::g_FileSystem->GetConfigPath("Input_default.ini")) })
-		.set(Cannon{ &m_World, 6, 6, 0, 100, 1500 });
+		.set(Cannon{ &m_World, 6, 6, 0, 500, 1500 });
 }
 
 void GameFramework::RegisterComponents()
@@ -119,7 +119,7 @@ void RegisterEcsFightingSystems(flecs::world& world) {
 			Math::Vector3f vel = camera.ptr->GetViewDir().Normalized() * 10;
 			flecs::entity bulletClone = world.entity()
 				.set(Position{ pos.x, pos.y, pos.z })
-				.set(HitSphere{ 1.0f, 0.f })
+				.set(HitSphere{ 0.1f, 0.f })
 				.set(OriginFlag{});
 			flecs::entity bullet = world.entity()
 				.set(Position{ pos.x, pos.y, pos.z })
