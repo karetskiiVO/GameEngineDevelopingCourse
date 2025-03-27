@@ -71,6 +71,15 @@ void GameFramework::RegisterComponentsReflection()
 
 	m_World.component<JumpSpeed>()
 		.member<float>("value");
+
+	m_World.component<Collider>()
+		.member<float>("radius");
+	
+	m_World.component<DeathTimer>()
+		.member<float>("t");
+
+	m_World.component<Enable>()
+		.member<bool>("enable");
 }
 
 void GameFramework::RegisterSystems()

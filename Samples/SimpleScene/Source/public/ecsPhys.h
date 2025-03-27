@@ -51,3 +51,14 @@ struct Speed
 	float value;
 };
 
+struct Collider {
+	float radius;
+};
+
+struct DeathTimer {
+	float t;
+};
+
+struct Enable {
+	bool enable;
+};

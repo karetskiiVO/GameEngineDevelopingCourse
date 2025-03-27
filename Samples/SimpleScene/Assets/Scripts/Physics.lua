@@ -60,9 +60,43 @@ local function BounceSystem(it)
     end
 end
 
+local function DieSystem(it)
+	for deathtimer, enable, ent in ecs.each(it) do
+		deathtimer.t = deathtimer.t - it.delta_time
+        if deathtimer.t <= 0 then
+            enable.enable = false
+        end
+    end
+end
+
+local function HitSystem(it)
+    for cola, posa, vela, enta in ecs.each(it) do
+        for colb, posb, velb, entb in ecs.each(it) do
+            if ecs.get_alive(enta) > ecs.get_alive(entb) then
+                local dx = posa.x - posb.x
+                local dy = posa.y - posb.y
+                local dz = posa.z - posb.z
+                local sqDist = dx * dx + dy * dy + dz * dz
+                local bound = cola.radius + colb.radius
+                local sqBound = bound * bound
+                if sqDist < sqBound then
+                    vela.x = rand_flt(-10.0, 10.0)
+                    vela.y = rand_flt(-10.0, 10.0)
+                    vela.z = rand_flt(-10.0, 10.0)
+
+                    velb.x = rand_flt(-10.0, 10.0)
+                    velb.y = rand_flt(-10.0, 10.0)
+                    velb.z = rand_flt(-10.0, 10.0)
+                end                
+            end
+        end
+    end
+end
+
 ecs.system(move, "Move", ecs.OnUpdate, "Position, Velocity")
 ecs.system(gravity, "grav", ecs.OnUpdate, "Position, Velocity, Gravity, BouncePlane")
 ecs.system(FrictionSystem, "FrictionSystem", ecs.OnUpdate, "Velocity, FrictionAmount")
 ecs.system(ShiverSystem, "ShiverSystem", ecs.OnUpdate, "Position, ShiverAmount")
 ecs.system(BounceSystem, "BounceSystem", ecs.OnUpdate, "Position, Velocity, BouncePlane, Bounciness")
-
+ecs.system(DieSystem, "DieSystem", ecs.OnUpdate, "DeathTimer, Enable")
+ecs.system(HitSystem, "HitSystem", ecs.OnUpdate, "Collider, Position, Velocity")
