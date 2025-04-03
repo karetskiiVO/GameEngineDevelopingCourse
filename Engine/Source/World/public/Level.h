@@ -1,5 +1,7 @@
 #pragma once
 
+#include <map>
+
 #include <World/export.h>
 
 #include <LevelObject.h>
@@ -9,7 +11,7 @@ namespace GameEngine::World
 	class WORLD_API Level final
 	{
 	public:
-		using LevelObjectList = std::vector<LevelObject>;
+		using LevelObjectList = std::map<Id, LevelObject>;
 
 	public:
 		Level() = delete;
@@ -22,6 +24,8 @@ namespace GameEngine::World
 		LevelObjectList& GetLevelObjects() { return m_LevelObjectList; }
 
 		const std::string& GetName() const { return m_Name; }
+
+		LevelObject* GetLevelObject(Id id) { return &m_LevelObjectList[id]; }
 
 	private:
 		std::string m_Name;

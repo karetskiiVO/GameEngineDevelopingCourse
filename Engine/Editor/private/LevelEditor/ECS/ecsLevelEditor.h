@@ -4,13 +4,15 @@
 #include <flecs.h>
 
 #include <EditorECS/ecsEditor.h>
+#include <LevelObject.h>
 
 namespace GameEngine::EntitySystem::LevelEditorECS
 {
 	struct PositionDesc
 	{
-		const World::LevelObject::ComponentDesc* value;
+		Id objId;
+		Id cmpId;
 	};
 
-	void RegisterLevelEditorEcsSystems(flecs::world& world);
+	void RegisterLevelEditorEcsSystems(flecs::world& world, World::Level& level);
 }

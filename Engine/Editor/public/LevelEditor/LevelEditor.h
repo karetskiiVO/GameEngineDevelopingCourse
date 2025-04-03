@@ -5,6 +5,10 @@
 #include <Timer.h>
 #include <flecs.h>
 
+#include <map>
+#include <memory>
+#include <optional>
+
 namespace GameEngine
 {
 	namespace Editor
@@ -23,11 +27,13 @@ namespace GameEngine
 		private:
 			void Save();
 
+			void NewObj();
 		private:
 			Core::Timer m_SaveButtonMessageTimer;
 			bool m_SaveButtonPressed = false;
 			float m_TimeToShowSaveButtonMessage = 3.f;
 
+			flecs::world* world = nullptr;
 			std::optional<World::Level> m_Level = std::nullopt;
 		};
 	}
