@@ -354,3 +354,7 @@ cmake_output/
 
 # Local Build
 localBuild/
+
+# clangd configuration
+Tools/vsccc
+compile_commands.json

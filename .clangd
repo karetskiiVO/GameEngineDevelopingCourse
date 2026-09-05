@@ -1,0 +1,14 @@
+CompileFlags:
+  Add:
+    - -include
+    - <unordered_map>
+    - -include
+    - <vector>
+    - -include
+    - <string>
+    - -include
+    - <cassert>
+    - -include
+    - <format>
+    - -include
+    - <functional>
