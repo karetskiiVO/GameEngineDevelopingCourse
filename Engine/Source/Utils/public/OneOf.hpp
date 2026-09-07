@@ -2,6 +2,7 @@
 
 // TODO: assert -> panic
 
+#include <concepts>
 #ifndef UTILS_ONEOF_hpp
 #define UTILS_ONEOF_hpp
 
@@ -11,6 +12,10 @@
 
 template <typename U, typename... Ts>
 concept OneOfType = (std::same_as<std::remove_cvref_t<U>, Ts> || ...);
+
+// TODO: cast
+template <typename I, typename... Ts>
+concept EveryTypeImplements = (std::derived_from<Ts, std::remove_cvref_t<I>> && ...);
 
 template <typename ...T>
 class OneOf {
@@ -146,6 +151,20 @@ private:
         }
     }
 
+    template<usize index = 0, typename InterfaceT>
+    InterfaceT& AsImpl() {
+        if constexpr (index == typesCount - 1) {
+            using CurrentType = TypeAt<index, T...>;
+            return Get<CurrentType>();
+        } else {
+            if (typeIndex == index) {
+                using CurrentType = TypeAt<index, T...>;
+                return Get<CurrentType>();
+            } else {
+                return AsImpl<index + 1, InterfaceT>();
+            }
+        }
+    }
 public:
     template <typename TargetT> requires OneOfType<TargetT, T...>
     OneOf(TargetT&& value) { Construct<std::remove_cvref_t<TargetT>>(std::forward<TargetT>(value)); }
@@ -185,6 +204,9 @@ public:
 
     template <typename TargetT> requires OneOfType<TargetT, T...>
     bool Is() const { return typeIndex == IndexOf<TargetT, T...>::value; }
+
+    template <typename InterfaceT> requires EveryTypeImplements<InterfaceT, T...>
+    InterfaceT& As() { return AsImpl<InterfaceT>(); }
 
     template <typename TargetT> requires OneOfType<TargetT, T...>
     TargetT& Get() & { return PrivateGet<TargetT>(); }

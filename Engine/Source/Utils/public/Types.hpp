@@ -5,6 +5,8 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <type_traits>
+
 
 using usize = std::size_t;
 // using ssize = std::ssize_t;
@@ -23,5 +25,16 @@ using uint64 = uint64_t;
 
 using float32 = float;
 using float64 = double;
+
+template <typename Func, typename Signature>
+struct IsCallable : public std::false_type {};
+
+template <typename Func, typename Ret, typename... Args>
+struct IsCallable<Func, Ret(Args...)> : public std::is_invocable_r<Ret, Func, Args...> {};
+
+template <typename Func, typename Signature>
+concept Call = std::invocable<Func, Signature>;
+template <typename Func, typename Arg>
+using ReturnTypeOfCall = std::invoke_result_t<Func, Arg>;
 
 #endif // Utils/Types.hpp
